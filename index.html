@@ -107,11 +107,11 @@
             flex-direction: column;
         }
         .change-block.physical {
-            background: #e6f2ff; /* Azul claro */
+            background: #e6f2ff;
             border: 2px solid var(--blue-600);
         }
         .change-block.chemical {
-            background: #fff3e0; /* Naranja claro */
+            background: #fff3e0;
             border: 2px solid var(--orange);
         }
         .block-title {
@@ -228,9 +228,7 @@
             max-height: 350px;
             object-fit: contain;
             border-radius: 8px;
-            transition: transform 0.2s ease;
         }
-        .image-display img:hover { transform: scale(1.03); }
 
         /* Contenedor selects en línea */
         .selectors-container {
@@ -271,7 +269,7 @@
             border: 2px solid var(--blue-600);
             border-radius: 10px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, color 0.2s, font-weight 0.2s;
         }
         .custom-select__trigger:hover {
             border-color: var(--orange);
@@ -283,7 +281,19 @@
             border-bottom: 2px solid var(--blue-700);
             transform: rotate(45deg);
             margin-top: -5px;
-            transition: transform 0.2s;
+            transition: transform 0.2s, border-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        /* Destacar en naranja al seleccionar un elemento */
+        .custom-select.selected .custom-select__trigger {
+            color: var(--orange);
+            border-color: var(--orange);
+            font-weight: 700;
+        }
+        .custom-select.selected .custom-select__trigger::after {
+            border-right-color: var(--orange);
+            border-bottom-color: var(--orange);
         }
         
         /* Drop UP */
@@ -563,7 +573,7 @@
             <div id="finalMsg" class="subtitle"></div>
             <button class="btn btn-primary" id="backToMenuBtn" style="background:var(--orange);">Volver al menú</button>
             <span class="credit">Creado por Manuel J. Ventura</span>
-            <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Efectos_audio/refs/heads/main/Siurot.png" alt="School logo" />
+            <img class="school-logo" src="https://raw.githubusercontent.com/ManuelVS8/Audios-juegos-SCIENCE/refs/heads/main/Siurot.png" alt="School logo" />
         </div>
     </section>
 </div>
@@ -586,7 +596,7 @@
     /* --- 1. CONFIGURACIÓN DE VARIABLES GLOBALES (CRÍTICO) --- */
     const SHEET_NAME = "Cambios";
     const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwXaTeZczyTg43AjfomeGov1WvmndAxl30YQkuNCk_2kDbQegsO4amWubjl5DBa0QNDgw/exec";
-    const MIN_INTERACTIONS = 20; // 8 parejas + 12 imágenes
+    const MIN_INTERACTIONS = 20;
     
     let soundEnabled = true;
     let audioUnlocked = false;
@@ -700,7 +710,7 @@
     document.getElementById('playBtn').onclick = () => { 
         playSound('tap'); 
         startGlobalTimer();
-        totalAttempts = 0; // Reset global attempts
+        totalAttempts = 0;
         initGame1();
     };
 
@@ -750,7 +760,6 @@
     function selectCard(card) {
         if (card.classList.contains('matched') || selectedCards.length >= 2 || selectedCards.includes(card)) return;
         
-        // Suena TAP solo en la primera selección
         if (selectedCards.length === 0) playSound('tap');
         
         card.classList.add('selected');
@@ -824,7 +833,6 @@
     [selectPhysical, selectChemical].forEach(sel => {
         const trigger = sel.querySelector('.custom-select__trigger');
         trigger.addEventListener('click', () => {
-            // Close other
             if(sel === selectPhysical) selectChemical.classList.remove('open');
             else selectPhysical.classList.remove('open');
             sel.classList.toggle('open');
@@ -847,6 +855,14 @@
             const trigger = parentSelect.querySelector('.custom-select__trigger');
             trigger.innerHTML = this.textContent;
             parentSelect.classList.add('selected');
+            
+            // Quitar el estado seleccionado de la otra lista
+            const otherSelect = parentSelect === selectPhysical ? selectChemical : selectPhysical;
+            otherSelect.classList.remove('selected');
+            const otherTrigger = otherSelect.querySelector('.custom-select__trigger');
+            otherTrigger.innerHTML = parentSelect === selectPhysical 
+                ? '<span>Químicos</span>' 
+                : '<span>Físicos</span>';
             
             // Reset validation colors
             triggerPhysical.classList.remove('correct', 'wrong');
@@ -886,7 +902,6 @@
 
     function checkAnswerGame2() {
         if (!currentSelection) {
-            // Optional: subtle shake on buttons?
             return;
         }
 
@@ -905,7 +920,6 @@
         } else {
             playSound('error');
             
-            // Find wrong trigger
             const wrongTrigger = currentSelection === 'Deformación' || currentSelection === 'Rotura' || currentSelection === 'Cambio de estado' 
                 ? triggerPhysical : triggerChemical;
             wrongTrigger.classList.add('wrong');
@@ -928,7 +942,6 @@
 
     /* --- FINALIZAR --- */
     function calcularPuntuacionFinal() {
-        // 100 - ((total - min) * (100 / min))
         let score = 100 - ((totalAttempts - MIN_INTERACTIONS) * (100 / MIN_INTERACTIONS));
         score = Math.max(0, score);
         return Math.round(score);
